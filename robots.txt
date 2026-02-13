@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://muhammadfajarpradita.vercel.app/sitemap-final.xml
+

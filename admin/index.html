@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SECURE ADMIN PANEL - ACCESS RESTRICTED</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .glitch { animation: glitch 2s infinite; }
+    @keyframes glitch {
+      0%, 100% { transform: skew(0); }
+      20% { transform: skew(-1deg); }
+      40% { transform: skew(1deg); }
+    }
+    .scan-line {
+      position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+      background: linear-gradient(to bottom, transparent 50%, rgba(220,38,38,0.02) 50%);
+      background-size: 100% 4px; animation: scanline 8s linear infinite;
+    }
+    @keyframes scanline { 0% { transform: translateY(0); } 100% { transform: translateY(10px); } }
+    .protection-overlay {
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(220,38,38,0.03) 10px, rgba(220,38,38,0.03) 20px);
+      pointer-events: none;
+    }
+    .watermark {
+      position: fixed; bottom: 8px; right: 8px;
+      color: rgba(255,255,255,0.15); font-size: 10px; pointer-events: none;
+    }
+    .hidden { display: none; }
+    #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+    #dashboard { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+    .btn-red { background: #dc2626; color: white; padding: 0.75rem 1.5rem; border-radius: 0.25rem; cursor: pointer; transition: all 0.3s; }
+    .btn-red:hover { background: #991b1b; }
+  </style>
+</head>
+<body oncontextmenu="return false;">
+  <div class="scan-line"></div>
+  <canvas id="matrix" style="position:fixed; inset:0; z-index:-1; opacity:0.03; pointer-events:none;"></canvas>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="relative p-8 bg-black/80 border border-gray-800 rounded-lg max-w-md w-full text-center">
+      <div class="protection-overlay"></div>
+      <h1 class="text-3xl font-bold text-red-600 glitch mb-6">SECURE ADMIN ACCESS</h1>
+      <p class="text-gray-400 mb-8">Network Security Specialist Authentication Required</p>
+      
+      <button id="github-login" class="btn-red w-full mb-4">Login with GitHub</button>
+      <p class="text-xs text-gray-600 mt-4">Session ID: <span id="sess"></span></p>
+      <div class="watermark">CONFIDENTIAL - FAJAR - PROTECTED</div>
+    </div>
+  </div>
+
+  <!-- Dashboard (hidden until login) -->
+  <div id="dashboard" class="hidden">
+    <nav class="fixed top-0 left-0 right-0 bg-black/90 border-b border-gray-800 z-50 p-4">
+      <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <div class="text-red-600 font-bold">root@fajar-admin:~#</div>
+        <button id="logout" class="text-gray-400 hover:text-red-500">Logout</button>
+      </div>
+    </nav>
+
+    <div class="pt-20">
+      <h2 class="text-2xl text-red-600 mb-6"># ADMIN CONTROL PANEL</h2>
+      <div id="decap-cms-frame" style="height: calc(100vh - 80px); border: 1px solid #333; background: #111;"></div>
+      <div class="watermark">SESSION ACTIVE - PROTECTED</div>
+    </div>
+  </div>
+
+  <script>
+    // Session ID random mirip lu
+    const sess = 'sess_' + Math.random().toString(36).substr(2, 9);
+    document.getElementById('sess').textContent = sess;
+
+    // Matrix rain background (optional, skip kalau berat)
+    const cvs = document.getElementById('matrix');
+    const ctx = cvs.getContext('2d');
+    function resize() { cvs.width = innerWidth; cvs.height = innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    const ch = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+    const fs = 14, cols = cvs.width / fs, drops = Array(Math.floor(cols)).fill(1);
+    setInterval(() => {
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, 0, cvs.width, cvs.height);
+      ctx.fillStyle = '#0F0';
+      ctx.font = fs + 'px monospace';
+      drops.forEach((d, i) => {
+        ctx.fillText(ch[Math.random() * ch.length | 0], i * fs, d * fs);
+        drops[i] = d * fs > cvs.height && Math.random() > 0.975 ? 1 : d + 1;
+      });
+    }, 50);
+
+    // Login handler (simulasi, karena Decap CMS handle auth sendiri)
+    document.getElementById('github-login').onclick = () => {
+      // Decap CMS akan handle redirect ke GitHub OAuth
+      // Kita load CMS setelah "login"
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+
+      // Load Decap CMS
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js';
+      document.body.appendChild(script);
+
+      // Config path (harus di-load manual kalau perlu)
+      window.CMS_MANUAL_INIT = true;
+      script.onload = () => {
+        CMS.init({ config: { backend: { name: 'github' } } }); // Minimal init
+      };
+    };
+
+    // Logout (reload aja)
+    document.getElementById('logout').onclick = () => location.reload();
+  </script>
+</body>
+</html>
